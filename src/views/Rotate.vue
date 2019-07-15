@@ -8,7 +8,7 @@
 
 <script>
 import { getWebGLContext, initShaders } from "../assets/js/cuon-utils";
-// RotatedTriangle_Matrix.js (c) matsuda
+// RotatedTriangle.js (c) 2012 matsuda
 // Vertex shader program
 var VSHADER_SOURCE =
   'attribute vec4 a_Position;\n' +
@@ -24,31 +24,25 @@ var FSHADER_SOURCE =
   '}\n';
 
 // The rotation angle
-var ANGLE = 90.0;
-
-function click(gl, u_xformMatrix, n){
-// Create a rotation matrix
-   ANGLE += 10
-  console.log('click')
-  var radian = Math.PI * ANGLE / 180.0; // Convert to radians
-  var cosB = Math.cos(radian), sinB = Math.sin(radian);
-  // Note: WebGL is column major order
-  var xformMatrix = new Float32Array([
+let ANGLE = 90.0; 
+function click(e, gl, u_xformMatrix, n){
+  ANGLE += 10
+  let radian = Math.PI * ANGLE / 180.0; // Convert to radians
+  let cosB = Math.cos(radian);
+  let sinB = Math.sin(radian);
+  let matrix = new Float32Array([
      cosB, sinB, 0.0, 0.0,
     -sinB, cosB, 0.0, 0.0,
-      0.0,  0.0, 1.0, 0.0,
-      0.0,  0.0, 0.0, 1.0
-  ]);
-  // Pass the rotation matrix to the vertex shader
-  gl.uniformMatrix4fv(u_xformMatrix, false, xformMatrix);
-  // Specify the color for clearing <canvas>
+      0.0, 0.0,  1.0, 0.0,
+      0.0, 0.0,  0.0, 1.0
+  ])
+  gl.uniformMatrix4fv(u_xformMatrix, false, matrix);
+  console.log('mat', matrix)
   gl.clearColor(0, 0, 0, 1);
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
-  // Draw the rectangle
   gl.drawArrays(gl.TRIANGLES, 0, n);
 }
-
 function main() {
   // Retrieve <canvas> element
   var canvas = document.getElementById('webgl');
@@ -65,35 +59,37 @@ function main() {
     console.log('Failed to intialize shaders.');
     return;
   }
- 
-  // Write the positions of vertices to a vertex shader
-  var n = initVertexBuffers(gl);
+  let n = initVertexBuffers(gl);
   if (n < 0) {
     console.log('Failed to set the positions of the vertices');
     return;
   }
-  var u_xformMatrix = gl.getUniformLocation(gl.program, 'u_xformMatrix');
+  // Write the positions of vertices to a vertex shader u_xformMatrix
+  let u_xformMatrix = gl.getUniformLocation(gl.program, 'u_xformMatrix');
+  // let u_SinB = gl.getUniformLocation(gl.program, 'u_SinB');
   if (!u_xformMatrix) {
-    console.log('Failed to get the storage location of u_xformMatrix');
+    console.log('Failed to get the storage location of u_CosB or u_SinB');
     return;
   }
-  canvas.onmousedown = ()=>{
-    click(gl, u_xformMatrix, n)
+
+  // // Pass the data required to rotate the shape to the vertex shader
+  canvas.onmousedown = (e)=>{
+    click(e, gl, u_xformMatrix, n)
   }
-  
+   click(null, gl, u_xformMatrix, n)
 }
 
 function initVertexBuffers(gl) {
-  var vertices = new Float32Array([
+  let vertices = new Float32Array([
     0, 0.5,   -0.5, -0.5,   0.5, -0.5
   ]);
-  var n = 3; // The number of vertices
+  let n = 3; // The number of vertices
 
   // Create a buffer object
-  var vertexBuffer = gl.createBuffer();
+  let vertexBuffer = gl.createBuffer();
   if (!vertexBuffer) {
     console.log('Failed to create the buffer object');
-    return false;
+    return -1;
   }
 
   // Bind the buffer object to target
@@ -101,7 +97,7 @@ function initVertexBuffers(gl) {
   // Write date into the buffer object
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-  var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+  let a_Position = gl.getAttribLocation(gl.program, 'a_Position');
   if (a_Position < 0) {
     console.log('Failed to get the storage location of a_Position');
     return -1;
@@ -114,6 +110,7 @@ function initVertexBuffers(gl) {
 
   return n;
 }
+
     export default {
         mounted () {
             main();
