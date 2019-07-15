@@ -25,40 +25,29 @@ var FSHADER_SOURCE =
 
 // The rotation angle
 let ANGLE = 90.0; 
-let tx = 0.0;
-let ty = 0.0;
+let rate = 0.1;
 let add = true
 function click(e, gl, u_xformMatrix, n){
   ANGLE += 10
-  // let radian = Math.PI * ANGLE / 180.0; // Convert to radians
-  // let cosB = Math.cos(radian);
-  // let sinB = Math.sin(radian);
-  // let matrix = new Float32Array([
-  //    cosB, sinB, 0.0, 0.0,
-  //   -sinB, cosB, 0.0, 0.0,
-  //     0.0, 0.0,  1.0, 0.0,
-  //     0.0, 0.0,  0.0, 1.0
-  // ])
   if(add){
+    rate += 0.1
+  }else{
+    rate -= 0.1
+  }
 
-  }
-     tx += 0.1
-     ty += 0.1 
-  if(tx > 1.0 || ty >1.0){
-    tx = -1.0
-    ty = -1.0
+  if(rate >= 2.0){
     add = false
   }
-  if(tx < -1.0 || ty < -1.0){
-    tx = 1.0
-    ty = 1.0
-    add = false
+
+  if( rate <=0.1 ){
+    add = true
   }
+  
   var matrix = new Float32Array([
-      1.0, 0.0, 0.0, 0.0,
-      0.0,  1.0, 0.0, 0.0,
-      0.0,  0.0, 1.0, 0.0,
-      tx, ty, 0.0, 1.0
+      rate, 0.0, 0.0, 0.0,
+      0.0,  rate, 0.0, 0.0,
+      0.0,  0.0, rate, 0.0,
+      0.0, 0.0, 0.0, 1.0
   ]);
   gl.uniformMatrix4fv(u_xformMatrix, false, matrix);
   console.log('mat', matrix)
