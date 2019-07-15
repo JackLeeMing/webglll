@@ -15,12 +15,9 @@ var VSHADER_SOURCE =
   // y' = x sinβ + y cosβ　Equation 3.3
   // z' = z
   'attribute vec4 a_Position;\n' +
-  'uniform vec2 u_CosBSinB;\n' +
+  'uniform  mat4 u_xformMatrix;\n' +
   'void main() {\n' +
-  '  gl_Position.x = a_Position.x * u_CosBSinB.x - a_Position.y * u_CosBSinB.y;\n' +
-  '  gl_Position.y = a_Position.x * u_CosBSinB.y + a_Position.y * u_CosBSinB.x;\n' +
-  '  gl_Position.z = a_Position.z;\n' +
-  '  gl_Position.w = 1.0;\n' +
+  'gl_Position = u_xformMatrix * a_Position;\n'
   '}\n';
 
 // Fragment shader program
@@ -31,7 +28,7 @@ var FSHADER_SOURCE =
 
 // The rotation angle
 let ANGLE = 90.0; 
-function click(e, gl, u_CosBSinB){
+function click(e, gl, u_xformMatrix){
   ANGLE += 10
   let n = initVertexBuffers(gl);
   if (n < 0) {
@@ -41,7 +38,12 @@ function click(e, gl, u_CosBSinB){
   let radian = Math.PI * ANGLE / 180.0; // Convert to radians
   let cosB = Math.cos(radian);
   let sinB = Math.sin(radian);
-  gl.uniform2f(u_CosBSinB, cosB, sinB);
+  gl.uniformMatrix4fv(u_xformMatrix, new Float32Array([
+    cosB, sinB, 0.0, 0.0,
+    -sinB, cosB, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0,
+  ]));
   gl.clearColor(0, 0, 0, 1);
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -64,16 +66,16 @@ function main() {
     return;
   }
   // Write the positions of vertices to a vertex shader
-  let u_CosBSinB = gl.getUniformLocation(gl.program, 'u_CosBSinB');
+  let u_xformMatrix = gl.getUniformLocation(gl.program, 'u_xformMatrix');
   // let u_SinB = gl.getUniformLocation(gl.program, 'u_SinB');
-  if (!u_CosBSinB) {
+  if (!u_xformMatrix) {
     console.log('Failed to get the storage location of u_CosB or u_SinB');
     return;
   }
 
   // // Pass the data required to rotate the shape to the vertex shader
   canvas.onmousedown = (e)=>{
-    click(e, gl, u_CosBSinB)
+    click(e, gl, u_xformMatrix)
   }
 
   // Specify the color for clearing <canvas>
