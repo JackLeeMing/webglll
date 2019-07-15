@@ -11,7 +11,31 @@ export default new Router({
     {
       path: "/",
       name: "home",
-      component: Home
+      component: () =>
+        import(/* webpackChunkName: "about" */ "./views/About.vue")
+    },
+    {
+      path: "/about2",
+      name: "home2",
+      component: () =>
+        import(/* webpackChunkName: "about" */ "./views/About2.vue")
+    },
+    {
+      path: "/raw",
+      name: "Raw",
+      component: () => import(/* webpackChunkName: "about" */ "./views/Raw.vue")
+    },
+    {
+      path: "/about3",
+      name: "Translate",
+      component: () =>
+        import(/* webpackChunkName: "about" */ "./views/Translate.vue")
+    },
+    {
+      path: "/rotate",
+      name: "Rotate",
+      component: () =>
+        import(/* webpackChunkName: "about" */ "./views/Rotate.vue")
     },
     {
       path: "/about",
@@ -19,8 +43,7 @@ export default new Router({
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () =>
-        import(/* webpackChunkName: "about" */ "./views/About.vue")
+      component: Home
     }
   ]
 });
