@@ -6,7 +6,7 @@
       <router-link to="/raw">Raw</router-link> |
       <router-link to="/about3">Translate</router-link> |
       <router-link to="/rotate">Rotate</router-link> |
-      <router-link to="/about">About</router-link> |
+      <router-link to="/matrix">Matrix</router-link> |
     </div>
     <router-view />
   </div>
@@ -14,7 +14,7 @@
 
 <style>
 #app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;

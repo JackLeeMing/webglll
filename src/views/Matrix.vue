@@ -7,10 +7,12 @@
 </template>
 
 <script>
-import { getWebGLContext, initShaders } from '../assets/js/cuon-utils'
-// RotatedTriangle.js (c) 2012 matsuda
+import { getWebGLContext, initShaders } from '../assets/js/cuon-utils.js'
+import { Matrix4 } from '../assets/js/cuon-matrix.js'
+// RotatedTriangle_Matrix4.js (c) 2012 matsuda
 // Vertex shader program
-var VSHADER_SOURCE =
+// 顶点着色器
+const VSHADER_SOURCE =
   'attribute vec4 a_Position;\n' +
   'uniform mat4 u_xformMatrix;\n' +
   'void main() {\n' +
@@ -18,54 +20,10 @@ var VSHADER_SOURCE =
   '}\n'
 
 // Fragment shader program
-var FSHADER_SOURCE =
+// 片元着色器
+const FSHADER_SOURCE =
   'void main() {\n' + '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' + '}\n'
-
-// The rotation angle
-let ANGLE = 90.0
-let rate = 0.1
-let add = true
-function click(e, gl, u_xformMatrix, n) {
-  ANGLE += 10
-  if (add) {
-    rate += 0.1
-  } else {
-    rate -= 0.1
-  }
-
-  if (rate >= 2.0) {
-    add = false
-  }
-
-  if (rate <= 0.1) {
-    add = true
-  }
-
-  var matrix = new Float32Array([
-    rate,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    rate,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    rate,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    1.0
-  ])
-  gl.uniformMatrix4fv(u_xformMatrix, false, matrix)
-  console.log('mat', matrix)
-  gl.clearColor(0, 0, 0, 1)
-  // Clear <canvas>
-  gl.clear(gl.COLOR_BUFFER_BIT)
-  gl.drawArrays(gl.TRIANGLES, 0, n)
-}
+let ANGLE = 90.0 // The rotation angle
 function main() {
   // Retrieve <canvas> element
   var canvas = document.getElementById('webgl')
@@ -82,35 +40,50 @@ function main() {
     console.log('Failed to intialize shaders.')
     return
   }
-  let n = initVertexBuffers(gl)
+
+  // Write the positions of vertices to a vertex shader
+  var n = initVertexBuffers(gl)
   if (n < 0) {
     console.log('Failed to set the positions of the vertices')
     return
   }
-  // Write the positions of vertices to a vertex shader u_xformMatrix
-  let u_xformMatrix = gl.getUniformLocation(gl.program, 'u_xformMatrix')
-  // let u_SinB = gl.getUniformLocation(gl.program, 'u_SinB');
+
+  // Create Matrix4 object for the rotation matrix
+
+  // Pass the rotation matrix to the vertex shader
+  var u_xformMatrix = gl.getUniformLocation(gl.program, 'u_xformMatrix')
   if (!u_xformMatrix) {
-    console.log('Failed to get the storage location of u_CosB or u_SinB')
+    console.log('Failed to get the storage location of u_xformMatrix')
     return
   }
 
-  // // Pass the data required to rotate the shape to the vertex shader
-  canvas.onmousedown = e => {
-    click(e, gl, u_xformMatrix, n)
+  canvas.onmousedown = () => {
+    let xformMatrix = new Matrix4()
+    // Set the rotation matrix
+    ANGLE += 10
+    xformMatrix.setRotate(ANGLE, 0, 0, 1)
+    gl.uniformMatrix4fv(u_xformMatrix, false, xformMatrix.elements)
+    gl.clearColor(0, 0, 0, 1)
+    // Clear <canvas>
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    // Draw the rectangle
+    gl.drawArrays(gl.TRIANGLES, 0, n)
   }
-  click(null, gl, u_xformMatrix, n)
+
+  canvas.onmousedown()
+
+  // Specify the color for clearing <canvas>
 }
 
 function initVertexBuffers(gl) {
-  let vertices = new Float32Array([0, 0.5, -0.5, -0.5, 0.5, -0.5])
-  let n = 3 // The number of vertices
+  var vertices = new Float32Array([0, 0.5, -0.5, -0.5, 0.5, -0.5])
+  var n = 3 // The number of vertices
 
   // Create a buffer object
-  let vertexBuffer = gl.createBuffer()
+  var vertexBuffer = gl.createBuffer()
   if (!vertexBuffer) {
     console.log('Failed to create the buffer object')
-    return -1
+    return false
   }
 
   // Bind the buffer object to target
@@ -118,7 +91,7 @@ function initVertexBuffers(gl) {
   // Write date into the buffer object
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 
-  let a_Position = gl.getAttribLocation(gl.program, 'a_Position')
+  var a_Position = gl.getAttribLocation(gl.program, 'a_Position')
   if (a_Position < 0) {
     console.log('Failed to get the storage location of a_Position')
     return -1
