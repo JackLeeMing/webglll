@@ -1,8 +1,14 @@
 <template>
   <div class="about" ref="pfg" style="background:#666">
+    <br />
+    <p>
+      <button type="button" @click="up()">UP</button>
+      <button type="button" @click="down()">DOWN</button>
+    </p>
     <canvas id="webgl" ref="webgl" width="400" height="400" style="background:#000">
       please
     </canvas>
+    <br />
   </div>
 </template>
 
@@ -23,7 +29,6 @@ const VSHADER_SOURCE =
 // 片元着色器
 const FSHADER_SOURCE =
   'void main() {\n' + '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' + '}\n'
-let ANGLE = 90.0 // The rotation angle
 function main() {
   // Retrieve <canvas> element
   let canvas = document.getElementById('webgl')
@@ -99,6 +104,7 @@ function animate(angle) {
 function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
   // Set the rotation matrix
   modelMatrix.setRotate(currentAngle, 0, 0, 1) // Rotation angle, rotation axis (0, 0, 1)
+  modelMatrix.translate(0.35, 0, 0)
   // Pass the rotation matrix to the vertex shader
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)
   // Clear <canvas>
@@ -138,6 +144,14 @@ function initVertexBuffers(gl) {
 }
 
 export default {
+  methods: {
+    down() {
+      ANGLE_STEP -= 10
+    },
+    up() {
+      ANGLE_STEP += 10
+    }
+  },
   mounted() {
     main()
   }
