@@ -1,6 +1,6 @@
 <template>
   <div class="about" ref="pfg" style="background:#666">
-    <canvas id="webgl" ref="webgl" width="400" height="400" style="background:#f00">
+    <canvas id="webgl" ref="webgl" width="400" height="400" style="background:#000">
       please
     </canvas>
   </div>
@@ -24,13 +24,12 @@ const VSHADER_SOURCE =
 const FSHADER_SOURCE =
   'void main() {\n' + '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' + '}\n'
 let ANGLE = 90.0 // The rotation angle
-let dist = 0.0
 function main() {
   // Retrieve <canvas> element
-  var canvas = document.getElementById('webgl')
+  let canvas = document.getElementById('webgl')
 
   // Get the rendering context for WebGL
-  var gl = getWebGLContext(canvas)
+  let gl = getWebGLContext(canvas)
   if (!gl) {
     console.log('Failed to get the rendering context for WebGL')
     return
@@ -43,7 +42,9 @@ function main() {
   }
 
   // Write the positions of vertices to a vertex shader
-  var n = initVertexBuffers(gl)
+  let n = initVertexBuffers(gl)
+  gl.clearColor(0, 0, 0, 1)
+  //
   if (n < 0) {
     console.log('Failed to set the positions of the vertices')
     return
@@ -52,40 +53,66 @@ function main() {
   // Create Matrix4 object for the rotation matrix
 
   // Pass the rotation matrix to the vertex shader
-  var u_xformMatrix = gl.getUniformLocation(gl.program, 'u_xformMatrix')
+  let u_xformMatrix = gl.getUniformLocation(gl.program, 'u_xformMatrix')
   if (!u_xformMatrix) {
     console.log('Failed to get the storage location of u_xformMatrix')
     return
   }
   let xformMatrix = new Matrix4()
-  canvas.onmousedown = () => {
-    // Set the rotation matrix
-    ANGLE += 10
-    if (dist > 1.0) {
-      dist = -1.0
-    }
-    dist += 0.1
-    xformMatrix.setRotate(ANGLE, 0, 0, 1)
-    xformMatrix.translate(dist, 0, 0.0)
-    gl.uniformMatrix4fv(u_xformMatrix, false, xformMatrix.elements)
-    gl.clearColor(0, 0, 0, 1)
-    // Clear <canvas>
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    // Draw the rectangle
-    gl.drawArrays(gl.TRIANGLES, 0, n)
+  // const onmousedown = () => {
+  //   // Set the rotation matrix
+  //   ANGLE += 10
+  //   xformMatrix.setRotate(ANGLE, 0, 0, 1)
+  //   gl.uniformMatrix4fv(u_xformMatrix, false, xformMatrix.elements)
+  //   // Clear <canvas>
+  //   // Draw the rectangle
+  //   gl.clear(gl.COLOR_BUFFER_BIT)
+  //   gl.drawArrays(gl.TRIANGLES, 0, n)
+  // }
+  // onmousedown()
+  // setInterval(() => {
+  //   onmousedown()
+  // }, 500)
+  let currentAngle = 0.0
+  let tick = function() {
+    currentAngle = animate(currentAngle) // Update the rotation angle
+    draw(gl, n, currentAngle, xformMatrix, u_xformMatrix) // Draw the triangle
+    requestAnimationFrame(tick, canvas) // Request that the browser calls tick
   }
-
-  canvas.onmousedown()
-
+  tick()
   // Specify the color for clearing <canvas>
 }
 
+// Last time that this function was called
+let g_last = Date.now()
+let ANGLE_STEP = 45.0
+function animate(angle) {
+  // Calculate the elapsed time
+  let now = Date.now()
+  let elapsed = now - g_last
+  g_last = now
+  // Update the current rotation angle (adjusted by the elapsed time)
+  let newAngle = angle + (ANGLE_STEP * elapsed) / 1000.0
+  return (newAngle %= 360)
+}
+
+function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
+  // Set the rotation matrix
+  modelMatrix.setRotate(currentAngle, 0, 0, 1) // Rotation angle, rotation axis (0, 0, 1)
+  // Pass the rotation matrix to the vertex shader
+  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)
+  // Clear <canvas>
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  // Draw the rectangle
+  gl.drawArrays(gl.TRIANGLES, 0, n)
+}
+
 function initVertexBuffers(gl) {
-  var vertices = new Float32Array([0, 0.2, -0.2, -0.2, 0.2, -0.2])
-  var n = 3 // The number of vertices
+  let vertices = new Float32Array([0, 0.2, -0.2, -0.2, 0.2, -0.2])
+  let n = 3 // The number of vertices
 
   // Create a buffer object
-  var vertexBuffer = gl.createBuffer()
+  let vertexBuffer = gl.createBuffer()
   if (!vertexBuffer) {
     console.log('Failed to create the buffer object')
     return false
@@ -96,7 +123,7 @@ function initVertexBuffers(gl) {
   // Write date into the buffer object
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 
-  var a_Position = gl.getAttribLocation(gl.program, 'a_Position')
+  let a_Position = gl.getAttribLocation(gl.program, 'a_Position')
   if (a_Position < 0) {
     console.log('Failed to get the storage location of a_Position')
     return -1

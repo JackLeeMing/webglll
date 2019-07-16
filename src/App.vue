@@ -7,6 +7,7 @@
       <router-link to="/about3">Translate</router-link> |
       <router-link to="/rotate">Rotate</router-link> |
       <router-link to="/matrix">Matrix</router-link> |
+      <router-link to="/rotatting">Rotatting</router-link> |
     </div>
     <router-view />
   </div>
